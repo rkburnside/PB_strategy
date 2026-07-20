@@ -26,17 +26,18 @@ const ROLE_COLOR = {
   opponent: '#ff8a7a',
 }
 
-function PlayerMarker({ player, index, onDrag, onToggleHandedness }) {
+function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
   const { px, py } = ftToPx(player.x, player.y)
   const svgRef = useRef(null)
   const dragging = useRef(false)
 
   const handlePointerDown = useCallback((e) => {
+    if (locked) return
     e.preventDefault()
     e.stopPropagation()
     dragging.current = true
     e.target.setPointerCapture(e.pointerId)
-  }, [])
+  }, [locked])
 
   const handlePointerMove = useCallback(
     (e) => {
@@ -91,16 +92,17 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness }) {
   )
 }
 
-function BallMarker({ ball, onDrag }) {
+function BallMarker({ ball, onDrag, locked }) {
   const { px, py } = ftToPx(ball.x, ball.y)
   const dragging = useRef(false)
 
   const handlePointerDown = useCallback((e) => {
+    if (locked) return
     e.preventDefault()
     e.stopPropagation()
     dragging.current = true
     e.target.setPointerCapture(e.pointerId)
-  }, [])
+  }, [locked])
 
   const handlePointerMove = useCallback(
     (e) => {
@@ -130,7 +132,7 @@ function BallMarker({ ball, onDrag }) {
   )
 }
 
-export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatmapCanvasUrl }) {
+export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatmapCanvasUrl, userTargetMarker, onPickTarget, locked = false }) {
   const netY = ftToPx(0, 0).py
   const kitchenNearY = ftToPx(0, -COURT.kitchenDepthFt).py
   const kitchenFarY = ftToPx(0, COURT.kitchenDepthFt).py
@@ -156,6 +158,18 @@ export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatm
     onScenarioChange({ ...scenario, ball: { ...scenario.ball, x, y } })
   }
 
+  const handleBackgroundClick = (e) => {
+    if (!onPickTarget) return
+    const svg = e.currentTarget.ownerSVGElement ?? e.currentTarget
+    const rect = svg.getBoundingClientRect()
+    const scaleX = VIEW_W / rect.width
+    const scaleY = VIEW_H / rect.height
+    const px = (e.clientX - rect.left) * scaleX
+    const py = (e.clientY - rect.top) * scaleY
+    const { x, y } = pxToFt(px, py)
+    onPickTarget(x, y)
+  }
+
   return (
     <svg
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -165,8 +179,18 @@ export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatm
         <image href={heatmapCanvasUrl} x={leftX} y={baselineFarY} width={rightX - leftX} height={netY - baselineFarY} preserveAspectRatio="none" opacity={0.85} />
       )}
 
-      {/* Court outline */}
-      <rect x={leftX} y={baselineFarY} width={rightX - leftX} height={baselineNearY - baselineFarY} fill="none" stroke="#e8e6e1" strokeWidth={2} />
+      {/* Court outline; also the tap-to-pick-target surface when onPickTarget is provided */}
+      <rect
+        x={leftX}
+        y={baselineFarY}
+        width={rightX - leftX}
+        height={baselineNearY - baselineFarY}
+        fill="transparent"
+        stroke="#e8e6e1"
+        strokeWidth={2}
+        onClick={handleBackgroundClick}
+        style={{ cursor: onPickTarget ? 'crosshair' : 'default', pointerEvents: 'all' }}
+      />
       {/* Net */}
       <line x1={leftX} y1={netY} x2={rightX} y2={netY} stroke="#e8e6e1" strokeWidth={4} />
       {/* Kitchen lines */}
@@ -183,10 +207,31 @@ export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatm
         </g>
       )}
 
+      {userTargetMarker && (
+        <g>
+          <line
+            x1={ftToPx(userTargetMarker.x, userTargetMarker.y).px - 8}
+            y1={ftToPx(userTargetMarker.x, userTargetMarker.y).py}
+            x2={ftToPx(userTargetMarker.x, userTargetMarker.y).px + 8}
+            y2={ftToPx(userTargetMarker.x, userTargetMarker.y).py}
+            stroke="#5fb3ff"
+            strokeWidth={2.5}
+          />
+          <line
+            x1={ftToPx(userTargetMarker.x, userTargetMarker.y).px}
+            y1={ftToPx(userTargetMarker.x, userTargetMarker.y).py - 8}
+            x2={ftToPx(userTargetMarker.x, userTargetMarker.y).px}
+            y2={ftToPx(userTargetMarker.x, userTargetMarker.y).py + 8}
+            stroke="#5fb3ff"
+            strokeWidth={2.5}
+          />
+        </g>
+      )}
+
       {scenario.players.map((p, i) => (
-        <PlayerMarker key={i} player={p} index={i} onDrag={handlePlayerDrag} onToggleHandedness={handleToggleHandedness} />
+        <PlayerMarker key={i} player={p} index={i} onDrag={handlePlayerDrag} onToggleHandedness={handleToggleHandedness} locked={locked} />
       ))}
-      <BallMarker ball={scenario.ball} onDrag={handleBallDrag} />
+      <BallMarker ball={scenario.ball} onDrag={handleBallDrag} locked={locked} />
     </svg>
   )
 }

@@ -36,3 +36,35 @@ export function rankedCandidates(context, speed, { topN = 5, gridStepFt = 1, sho
   const peaks = shotTypes.map((shotType) => bestTargetForShot(context, shotType, speed, gridStepFt))
   return peaks.sort((a, b) => b.score - a.score).slice(0, topN)
 }
+
+export const DEFAULT_SPEED_BANDS = [0.1, 0.3, 0.5, 0.7, 0.9]
+
+// Like rankedCandidates, but also optimizes over speed for modes with no
+// live speed slider (Recommender, Grader, Quiz). Still a sampled-peaks
+// query against the same evaluateTarget surface, just swept across speed too.
+export function rankedCandidatesAcrossSpeeds(
+  context,
+  { topN = 5, gridStepFt = 1, shotTypes = CANDIDATE_SHOT_TYPES, speeds = DEFAULT_SPEED_BANDS } = {}
+) {
+  const peaks = shotTypes.map((shotType) => {
+    let best = null
+    for (const speed of speeds) {
+      const candidate = bestTargetForShot(context, shotType, speed, gridStepFt)
+      if (!best || candidate.score > best.score) best = candidate
+    }
+    return best
+  })
+  return peaks.sort((a, b) => b.score - a.score).slice(0, topN)
+}
+
+// Evaluates a user-committed (target, shotType) pair for the Grader mode.
+// Speed is swept the same way peaks are computed, so the comparison against
+// the ranked list is apples-to-apples: best-case pace for that exact spot.
+export function evaluateChoice(context, targetX, targetY, shotType, speeds = DEFAULT_SPEED_BANDS) {
+  let best = null
+  for (const speed of speeds) {
+    const score = evaluateTarget(context, targetX, targetY, shotType, speed)
+    if (!best || score > best.score) best = { x: targetX, y: targetY, shotType, score, speed }
+  }
+  return best
+}
