@@ -4,57 +4,8 @@ import { useHeatmapImage, HeatmapLegend } from '../render/HeatCanvas.jsx'
 import { buildPrecomputedContext } from '../domain/derive.js'
 import { rankedCandidates, CANDIDATE_SHOT_TYPES } from '../domain/candidates.js'
 import { explainTarget } from '../domain/evaluate.js'
-import { netClearanceHeightFt } from '../domain/court.js'
-
-const DIVISIONS = ['mens', 'womens', 'mixed']
-const BOUNCE_STATES = ['volley', 'afterBounce']
-
-function Slider({ label, value, min, max, step, onChange, formatValue, marker }) {
-  return (
-    <div className="mb-3">
-      <div className="flex justify-between text-sm text-neutral-300 mb-1">
-        <span>{label}</span>
-        <span className="font-mono">{formatValue ? formatValue(value) : value}</span>
-      </div>
-      <div className="relative">
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(parseFloat(e.target.value))}
-          className="w-full accent-amber-400"
-        />
-        {marker != null && (
-          <div
-            className="absolute top-0 h-2 w-px bg-white/70 pointer-events-none"
-            style={{ left: `${((marker - min) / (max - min)) * 100}%` }}
-            title="Net tape"
-          />
-        )}
-      </div>
-    </div>
-  )
-}
-
-function Segmented({ options, value, onChange }) {
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          className={`whitespace-nowrap rounded px-3 py-1 text-sm border ${
-            value === opt ? 'bg-amber-400 text-black border-amber-400' : 'border-neutral-600 text-neutral-300'
-          }`}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  )
-}
+import ScenarioPanel from './shared/ScenarioPanel.jsx'
+import { Slider, Segmented } from './shared/controls.jsx'
 
 export default function LiveAnalysis({ scenario, onScenarioChange }) {
   const [outputSpeed, setOutputSpeed] = useState(0.4)
@@ -72,10 +23,6 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
   const topPeak = candidates.find((c) => c.shotType === selectedShotType) ?? candidates[0]
   const explanation = topPeak ? explainTarget(context, topPeak.x, topPeak.y, topPeak.shotType, topPeak.speed) : []
 
-  const netTape = netClearanceHeightFt(scenario.ball.x)
-
-  const updateScenario = (patch) => onScenarioChange({ ...scenario, ...patch })
-
   return (
     <div className="flex flex-col md:flex-row gap-4 p-3 md:p-4">
       <div className="md:w-3/5">
@@ -87,36 +34,7 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
       </div>
 
       <div className="md:w-2/5 flex flex-col gap-4">
-        <div className="rounded-lg border border-neutral-700 p-3">
-          <h2 className="text-sm font-semibold text-neutral-200 mb-2">Scenario</h2>
-          <Slider
-            label="Height at contact (ft)"
-            value={scenario.ballHeightAtContact}
-            min={1}
-            max={9}
-            step={0.1}
-            marker={netTape}
-            onChange={(v) => updateScenario({ ballHeightAtContact: v })}
-            formatValue={(v) => v.toFixed(1)}
-          />
-          <Slider
-            label="Incoming speed"
-            value={scenario.incomingSpeed}
-            min={0}
-            max={1}
-            step={0.01}
-            onChange={(v) => updateScenario({ incomingSpeed: v })}
-            formatValue={(v) => v.toFixed(2)}
-          />
-          <Slider
-            label="Balance"
-            value={scenario.userBalance}
-            min={0}
-            max={1}
-            step={0.01}
-            onChange={(v) => updateScenario({ userBalance: v })}
-            formatValue={(v) => v.toFixed(2)}
-          />
+        <ScenarioPanel scenario={scenario} onScenarioChange={onScenarioChange}>
           <Slider
             label="Output speed"
             value={outputSpeed}
@@ -126,25 +44,7 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
             onChange={setOutputSpeed}
             formatValue={(v) => v.toFixed(2)}
           />
-
-          <div className="mt-2">
-            <div className="text-sm text-neutral-300 mb-1">Bounce state</div>
-            <Segmented options={BOUNCE_STATES} value={scenario.bounceState} onChange={(v) => updateScenario({ bounceState: v })} />
-          </div>
-          <div className="mt-2">
-            <div className="text-sm text-neutral-300 mb-1">Division</div>
-            <Segmented options={DIVISIONS} value={scenario.division} onChange={(v) => updateScenario({ division: v })} />
-          </div>
-          <Slider
-            label="Skill level"
-            value={scenario.skillLevel}
-            min={3.5}
-            max={5.0}
-            step={0.5}
-            onChange={(v) => updateScenario({ skillLevel: v })}
-            formatValue={(v) => v.toFixed(1)}
-          />
-        </div>
+        </ScenarioPanel>
 
         <div className="rounded-lg border border-neutral-700 p-3">
           <h2 className="text-sm font-semibold text-neutral-200 mb-2">Ranked shots</h2>
