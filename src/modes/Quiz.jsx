@@ -24,13 +24,36 @@ export default function Quiz() {
 
   const fullRanking = useMemo(
     () => (revealed ? rankedCandidatesAcrossSpeeds(context, { topN: CANDIDATE_SHOT_TYPES.length }) : []),
-    [revealed, context]
+    [revealed, context],
   )
   const optimal = fullRanking[0]
   const userChoice = useMemo(
-    () => (revealed && userTarget && chosenShotType ? evaluateChoice(context, userTarget.x, userTarget.y, chosenShotType) : null),
-    [revealed, userTarget, chosenShotType, context]
+    () =>
+      revealed && userTarget && chosenShotType
+        ? evaluateChoice(context, userTarget.x, userTarget.y, chosenShotType)
+        : null,
+    [revealed, userTarget, chosenShotType, context],
   )
+
+  // Synced after every render (not during) so the interval callback below —
+  // created once per round, not per keystroke — can read the latest picks
+  // without going stale.
+  const latestRef = useRef({ context, userTarget, chosenShotType })
+  useEffect(() => {
+    latestRef.current = { context, userTarget, chosenShotType }
+  })
+
+  const reveal = () => {
+    const { context, userTarget, chosenShotType } = latestRef.current
+    const ranking = rankedCandidatesAcrossSpeeds(context, { topN: CANDIDATE_SHOT_TYPES.length })
+    const best = ranking[0]
+    const choice =
+      userTarget && chosenShotType ? evaluateChoice(context, userTarget.x, userTarget.y, chosenShotType) : null
+    const hit = choice ? best.score - choice.score <= HIT_THRESHOLD : false
+    setHistory((h) => [...h, { hit }])
+    setStreak((s) => (hit ? s + 1 : 0))
+    setRevealed(true)
+  }
 
   const startRound = (nextDivision = division) => {
     clearInterval(timerRef.current)
@@ -47,7 +70,7 @@ export default function Quiz() {
       setTimeLeft((t) => {
         if (t <= 1) {
           clearInterval(timerRef.current)
-          setRevealed(true)
+          reveal()
           return 0
         }
         return t - 1
@@ -56,18 +79,10 @@ export default function Quiz() {
     return () => clearInterval(timerRef.current)
   }, [revealed, quizScenario])
 
-  useEffect(() => {
-    if (!revealed || !optimal) return
-    const hit = userChoice ? optimal.score - userChoice.score <= HIT_THRESHOLD : false
-    setHistory((h) => [...h, { hit }])
-    setStreak((s) => (hit ? s + 1 : 0))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revealed])
-
   const handleCommit = () => {
     if (!userTarget || !chosenShotType) return
     clearInterval(timerRef.current)
-    setRevealed(true)
+    reveal()
   }
 
   const handleDivisionChange = (d) => {
@@ -115,7 +130,9 @@ export default function Quiz() {
             <h2 className="text-sm font-semibold text-neutral-200 mb-2">Pick your shot and target</h2>
             <Segmented options={CANDIDATE_SHOT_TYPES} value={chosenShotType} onChange={setChosenShotType} />
             <p className="mt-2 text-xs text-neutral-400">
-              {userTarget ? `Target set at (${userTarget.x.toFixed(1)}, ${userTarget.y.toFixed(1)})` : 'Tap the court to set your target.'}
+              {userTarget
+                ? `Target set at (${userTarget.x.toFixed(1)}, ${userTarget.y.toFixed(1)})`
+                : 'Tap the court to set your target.'}
             </p>
             <button
               onClick={handleCommit}
@@ -140,14 +157,19 @@ export default function Quiz() {
                   Optimal: <span className="font-mono">{optimal.shotType}</span> — score{' '}
                   <span className="font-mono">{optimal.score.toFixed(0)}</span>
                 </div>
-                <div className={optimal.score - userChoice.score <= HIT_THRESHOLD ? 'text-emerald-300' : 'text-rose-300'}>
+                <div
+                  className={optimal.score - userChoice.score <= HIT_THRESHOLD ? 'text-emerald-300' : 'text-rose-300'}
+                >
                   {optimal.score - userChoice.score <= HIT_THRESHOLD ? 'Good read.' : 'Off the mark.'}
                 </div>
               </>
             ) : (
               <div className="text-rose-300">Time expired with no commit — counted as a miss.</div>
             )}
-            <button onClick={() => startRound()} className="mt-2 w-full rounded-lg bg-neutral-700 py-3 text-base font-semibold">
+            <button
+              onClick={() => startRound()}
+              className="mt-2 w-full rounded-lg bg-neutral-700 py-3 text-base font-semibold"
+            >
               Next
             </button>
           </div>

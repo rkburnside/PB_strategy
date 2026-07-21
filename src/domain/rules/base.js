@@ -39,8 +39,7 @@ export const BASE_RULES = [
     id: 'height-below-net-suppress-attack',
     name: 'Below net height — do not attack',
     condition: (ctx, target, shotType) =>
-      ctx.scenario.ballHeightAtContact < ctx.netClearanceAt(ctx.scenario.ball.x) &&
-      OFFENSIVE_SHOTS.includes(shotType),
+      ctx.scenario.ballHeightAtContact < ctx.netClearanceAt(ctx.scenario.ball.x) && OFFENSIVE_SHOTS.includes(shotType),
     scoreDelta: -35,
     appliesToDivisions: ['mens', 'womens', 'mixed'],
     explanation: 'Ball is below net height — attacking from here is low-percentage. Reset or dink.',
@@ -63,8 +62,9 @@ export const BASE_RULES = [
     name: 'Target the player who is back or in transition',
     condition: (ctx, target) => {
       const { player } = nearestOpponent(ctx, target.x, target.y)
-      return player.role === 'opponent' && ['transition', 'midcourt', 'baseline'].includes(
-        ctx.perPlayer.find((p) => p.role === player.role).depthCategory
+      return (
+        player.role === 'opponent' &&
+        ['transition', 'midcourt', 'baseline'].includes(ctx.perPlayer.find((p) => p.role === player.role).depthCategory)
       )
     },
     scoreDelta: 20,
@@ -128,7 +128,8 @@ export const BASE_RULES = [
       const partnerX = ctx.players[1].x
       const partnerPulledWide = Math.abs(partnerX - ctx.centerX) > 6
       const isCrossCourtSpeedUp =
-        OFFENSIVE_SHOTS.includes(shotType) && Math.sign(target.x - ctx.players[0].x) !== 0 &&
+        OFFENSIVE_SHOTS.includes(shotType) &&
+        Math.sign(target.x - ctx.players[0].x) !== 0 &&
         Math.abs(target.x - ctx.players[0].x) > 5
       return partnerPulledWide && isCrossCourtSpeedUp
     },
@@ -164,7 +165,7 @@ export const BASE_RULES = [
   {
     id: 'net-clearance-risk',
     name: 'Net clearance risk',
-    condition: (ctx, target, shotType, speed) =>
+    condition: (ctx, target, shotType) =>
       OFFENSIVE_SHOTS.includes(shotType) && ctx.scenario.ballHeightAtContact < ctx.netClearanceAt(target.x) + 0.5,
     scoreDelta: (ctx, target, shotType, speed) => -10 - 10 * speed,
     appliesToDivisions: ['mens', 'womens', 'mixed'],

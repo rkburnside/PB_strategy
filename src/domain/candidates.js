@@ -44,7 +44,7 @@ export const DEFAULT_SPEED_BANDS = [0.1, 0.3, 0.5, 0.7, 0.9]
 // query against the same evaluateTarget surface, just swept across speed too.
 export function rankedCandidatesAcrossSpeeds(
   context,
-  { topN = 5, gridStepFt = 1, shotTypes = CANDIDATE_SHOT_TYPES, speeds = DEFAULT_SPEED_BANDS } = {}
+  { topN = 5, gridStepFt = 1, shotTypes = CANDIDATE_SHOT_TYPES, speeds = DEFAULT_SPEED_BANDS } = {},
 ) {
   const peaks = shotTypes.map((shotType) => {
     let best = null

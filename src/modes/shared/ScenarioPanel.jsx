@@ -21,7 +21,11 @@ export default function ScenarioPanel({ scenario, onScenarioChange, children, sh
       {showIncomingShot && (
         <div className="mb-3" data-testid="incoming-shot-selector">
           <div className="text-sm text-neutral-300 mb-1">Incoming shot</div>
-          <Segmented options={SHOT_TYPES} value={scenario.incomingShot} onChange={(v) => updateScenario({ incomingShot: v })} />
+          <Segmented
+            options={SHOT_TYPES}
+            value={scenario.incomingShot}
+            onChange={(v) => updateScenario({ incomingShot: v })}
+          />
         </div>
       )}
 
@@ -58,7 +62,11 @@ export default function ScenarioPanel({ scenario, onScenarioChange, children, sh
 
       <div className="mt-2">
         <div className="text-sm text-neutral-300 mb-1">Bounce state</div>
-        <Segmented options={BOUNCE_STATES} value={scenario.bounceState} onChange={(v) => updateScenario({ bounceState: v })} />
+        <Segmented
+          options={BOUNCE_STATES}
+          value={scenario.bounceState}
+          onChange={(v) => updateScenario({ bounceState: v })}
+        />
       </div>
       <div className="mt-2">
         <div className="text-sm text-neutral-300 mb-1">Division</div>

@@ -17,9 +17,8 @@ export function evaluateTarget(context, targetX, targetY, shotType, speed) {
   for (let i = 0; i < rules.length; i++) {
     const rule = rules[i]
     if (!rule.condition(context, targetScratch, shotType, speed)) continue
-    const delta = typeof rule.scoreDelta === 'function'
-      ? rule.scoreDelta(context, targetScratch, shotType, speed)
-      : rule.scoreDelta
+    const delta =
+      typeof rule.scoreDelta === 'function' ? rule.scoreDelta(context, targetScratch, shotType, speed) : rule.scoreDelta
     score += delta
   }
   return clamp(score, 0, 100)
@@ -34,9 +33,8 @@ export function explainTarget(context, targetX, targetY, shotType, speed) {
   const fired = []
   for (const rule of context.applicableRules) {
     if (!rule.condition(context, targetScratch, shotType, speed)) continue
-    const delta = typeof rule.scoreDelta === 'function'
-      ? rule.scoreDelta(context, targetScratch, shotType, speed)
-      : rule.scoreDelta
+    const delta =
+      typeof rule.scoreDelta === 'function' ? rule.scoreDelta(context, targetScratch, shotType, speed) : rule.scoreDelta
     if (delta !== 0) {
       fired.push({ id: rule.id, name: rule.name, delta, explanation: rule.explanation, category: rule.category })
     }

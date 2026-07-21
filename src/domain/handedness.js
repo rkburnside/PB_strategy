@@ -13,8 +13,7 @@ export function resolveHandednessGeometry(player, centerX = CENTER_X) {
   const towardMiddleSign = side === 'left' ? 1 : -1
 
   const forehandTowardMiddle =
-    (player.handedness === 'right' && side === 'left') ||
-    (player.handedness === 'left' && side === 'right')
+    (player.handedness === 'right' && side === 'left') || (player.handedness === 'left' && side === 'right')
 
   const forehandXDir = forehandTowardMiddle ? towardMiddleSign : -towardMiddleSign
   const backhandXDir = -forehandXDir

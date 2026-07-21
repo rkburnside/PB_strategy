@@ -18,12 +18,12 @@ export default function Grader({ scenario, onScenarioChange }) {
 
   const fullRanking = useMemo(
     () => (revealed ? rankedCandidatesAcrossSpeeds(context, { topN: CANDIDATE_SHOT_TYPES.length }) : []),
-    [revealed, context]
+    [revealed, context],
   )
 
   const userChoice = useMemo(
     () => (revealed && userTarget ? evaluateChoice(context, userTarget.x, userTarget.y, chosenShotType) : null),
-    [revealed, userTarget, chosenShotType, context]
+    [revealed, userTarget, chosenShotType, context],
   )
 
   const heatmapUrl = useHeatmapImage(context, chosenShotType, userChoice?.speed ?? 0.4)
@@ -32,7 +32,9 @@ export default function Grader({ scenario, onScenarioChange }) {
   const deltaFromOptimal = optimal && userChoice ? optimal.score - userChoice.score : null
   const nearestPeakForShot = fullRanking.find((c) => c.shotType === chosenShotType)
   const distanceFromPeak =
-    nearestPeakForShot && userTarget ? distance(userTarget.x, userTarget.y, nearestPeakForShot.x, nearestPeakForShot.y) : null
+    nearestPeakForShot && userTarget
+      ? distance(userTarget.x, userTarget.y, nearestPeakForShot.x, nearestPeakForShot.y)
+      : null
 
   const violatedRule = useMemo(() => {
     if (!userChoice) return null
@@ -71,7 +73,9 @@ export default function Grader({ scenario, onScenarioChange }) {
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           {revealed && <HeatmapLegend />}
           <span className="text-xs text-neutral-400">
-            {revealed ? 'White ring = optimal target. Blue crosshair = your target.' : 'Tap the court to set your target.'}
+            {revealed
+              ? 'White ring = optimal target. Blue crosshair = your target.'
+              : 'Tap the court to set your target.'}
           </span>
         </div>
       </div>
@@ -80,7 +84,8 @@ export default function Grader({ scenario, onScenarioChange }) {
         <ScenarioPanel scenario={scenario} onScenarioChange={onScenarioChange} showIncomingShot>
           {accuracy != null && (
             <div className="mb-3 text-sm text-neutral-300">
-              Session accuracy: <span className="font-mono">{accuracy}%</span> ({history.length} attempt{history.length === 1 ? '' : 's'})
+              Session accuracy: <span className="font-mono">{accuracy}%</span> ({history.length} attempt
+              {history.length === 1 ? '' : 's'})
             </div>
           )}
         </ScenarioPanel>
@@ -90,7 +95,9 @@ export default function Grader({ scenario, onScenarioChange }) {
             <h2 className="text-sm font-semibold text-neutral-200 mb-2">Your shot</h2>
             <Segmented options={CANDIDATE_SHOT_TYPES} value={chosenShotType} onChange={setChosenShotType} />
             <p className="mt-2 text-xs text-neutral-400">
-              {userTarget ? `Target set at (${userTarget.x.toFixed(1)}, ${userTarget.y.toFixed(1)})` : 'No target set yet.'}
+              {userTarget
+                ? `Target set at (${userTarget.x.toFixed(1)}, ${userTarget.y.toFixed(1)})`
+                : 'No target set yet.'}
             </p>
             <button
               onClick={handleCommit}
@@ -118,7 +125,8 @@ export default function Grader({ scenario, onScenarioChange }) {
             </div>
             {distanceFromPeak != null && (
               <div>
-                Distance from the nearest {chosenShotType} peak: <span className="font-mono">{distanceFromPeak.toFixed(1)} ft</span>
+                Distance from the nearest {chosenShotType} peak:{' '}
+                <span className="font-mono">{distanceFromPeak.toFixed(1)} ft</span>
               </div>
             )}
             {violatedRule ? (

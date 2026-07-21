@@ -17,7 +17,7 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
 
   const candidates = useMemo(
     () => rankedCandidates(context, outputSpeed, { topN: 6, shotTypes: CANDIDATE_SHOT_TYPES }),
-    [context, outputSpeed]
+    [context, outputSpeed],
   )
 
   const topPeak = candidates.find((c) => c.shotType === selectedShotType) ?? candidates[0]
@@ -26,7 +26,12 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
   return (
     <div className="flex flex-col md:flex-row gap-4 p-3 md:p-4">
       <div className="md:w-3/5">
-        <CourtSvg scenario={scenario} onScenarioChange={onScenarioChange} peakMarker={topPeak} heatmapCanvasUrl={heatmapUrl} />
+        <CourtSvg
+          scenario={scenario}
+          onScenarioChange={onScenarioChange}
+          peakMarker={topPeak}
+          heatmapCanvasUrl={heatmapUrl}
+        />
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <HeatmapLegend />
           <Segmented options={CANDIDATE_SHOT_TYPES} value={selectedShotType} onChange={setSelectedShotType} />
