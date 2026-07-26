@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import CourtSvg from '../render/CourtSvg.jsx'
-import { useHeatmapImage, HeatmapLegend } from '../render/HeatCanvas.jsx'
+import { useHeatmapImage } from '../render/HeatCanvas.jsx'
 import { buildPrecomputedContext } from '../domain/derive.js'
 import { rankedCandidatesAcrossSpeeds, evaluateChoice, CANDIDATE_SHOT_TYPES } from '../domain/candidates.js'
 import { explainTarget } from '../domain/evaluate.js'
 import { distance } from '../domain/court.js'
 import ScenarioPanel from './shared/ScenarioPanel.jsx'
+import CourtKey from './shared/CourtKey.jsx'
 import { Segmented } from './shared/controls.jsx'
 
 export default function Grader({ scenario, onScenarioChange }) {
@@ -70,13 +71,11 @@ export default function Grader({ scenario, onScenarioChange }) {
           heatmapCanvasUrl={revealed ? heatmapUrl : null}
           onPickTarget={revealed ? undefined : (x, y) => setUserTarget({ x, y })}
         />
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          {revealed && <HeatmapLegend />}
-          <span className="text-xs text-neutral-400">
-            {revealed
-              ? 'White ring = optimal target. Blue crosshair = your target.'
-              : 'Tap the court to set your target.'}
-          </span>
+        <p className="mt-2 text-xs text-neutral-400">
+          {revealed ? 'Compare your crosshair against the engine\u2019s ring.' : 'Tap the court to set your target.'}
+        </p>
+        <div className="mt-2">
+          <CourtKey showTargetCrosshair showHeatmap={revealed} />
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { buildPrecomputedContext } from '../domain/derive.js'
 import { rankedCandidatesAcrossSpeeds, evaluateChoice, CANDIDATE_SHOT_TYPES } from '../domain/candidates.js'
 import { generateRandomScenario } from '../domain/templates.js'
 import { Segmented } from './shared/controls.jsx'
+import CourtKey from './shared/CourtKey.jsx'
 
 const TIME_LIMIT_S = 10
 const DIVISIONS = ['mens', 'womens', 'mixed']
@@ -108,6 +109,9 @@ export default function Quiz() {
           {!revealed && (
             <span className={`font-mono ${timeLeft <= 3 ? 'text-rose-400' : 'text-neutral-300'}`}>{timeLeft}s</span>
           )}
+        </div>
+        <div className="mt-2">
+          <CourtKey showTargetCrosshair showHeatmap={false} />
         </div>
       </div>
 
