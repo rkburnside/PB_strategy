@@ -4,6 +4,7 @@ import { buildPrecomputedContext } from '../domain/derive.js'
 import { rankedCandidatesAcrossSpeeds } from '../domain/candidates.js'
 import { composeExplanation, riskBadge } from '../domain/staticExplanations.js'
 import ScenarioPanel from './shared/ScenarioPanel.jsx'
+import CourtKey from './shared/CourtKey.jsx'
 import { RiskBadge } from './shared/controls.jsx'
 
 function ShotCard({ candidate, expanded, onToggle, context }) {
@@ -73,6 +74,9 @@ export default function Recommender({ scenario, onScenarioChange }) {
         <p className="mt-2 text-xs text-neutral-400">
           Arrange the scenario, then analyze. Tap a card to highlight its target on the court.
         </p>
+        <div className="mt-2">
+          <CourtKey showHeatmap={false} />
+        </div>
       </div>
 
       <div className="md:w-2/5 flex flex-col gap-4">
