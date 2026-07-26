@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { COURT } from '../domain/court.js'
+import { paddleXDir } from '../domain/handedness.js'
 
 const SCALE = 14 // px per foot
 const MARGIN = COURT.outOfBoundsMarginFt
@@ -65,9 +66,11 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
   const color = ROLE_COLOR[player.role] ?? '#ccc'
   const label = player.role === 'user' ? 'U' : player.role === 'partner' ? 'P' : index === 2 ? 'O1' : 'O2'
 
-  // Badge sits on the actual paddle-hand side, not a fixed corner: right-
-  // handed players carry it to their right (+x), left-handed to their left.
-  const badgeX = player.handedness === 'right' ? px + 16 : px - 16
+  // Badge sits where the paddle actually is in space. Uses the same
+  // facing-aware helper the engine does, so the diagram and the scoring
+  // can't disagree about which side a player's forehand is on. Opponents
+  // face the viewer, so their paddle renders mirrored.
+  const badgeX = px + paddleXDir(player) * 16
 
   return (
     <g

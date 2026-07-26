@@ -6,20 +6,39 @@ const BODY_JAM_OFFSET_FT = 1.2
 const FOREHAND_REACH_FT = 5
 const BACKHAND_REACH_FT = 3.5
 
+// Which way a player faces along y. Near-side players (y <= 0) face the far
+// side (+y); far-side players face back toward the near side (-y).
+//
+// This is what makes an opponent a mirror image, and it is easy to get wrong:
+// a right-hander facing away from the viewer carries the paddle on the
+// viewer's right, but the same player facing the viewer carries it on the
+// viewer's LEFT. Since the rules engine targets opponents — who always face
+// the user — ignoring this mirrors every body-jam and backhand target onto
+// the wrong side of the opponent.
+export function facingSign(player) {
+  return player.y > 0 ? -1 : 1
+}
+
+// World-x direction of a player's paddle (forehand) hand, from handedness and
+// facing together. Formally right = forward × up, so a right-hander facing +y
+// has the paddle at +x and the same player facing -y has it at -x.
+export function paddleXDir(player) {
+  return (player.handedness === 'right' ? 1 : -1) * facingSign(player)
+}
+
 // Resolves which lateral (x) direction is a player's forehand vs backhand,
 // and whether their forehand faces the middle of the court.
 export function resolveHandednessGeometry(player, centerX = CENTER_X) {
-  const side = player.x < centerX ? 'left' : 'right'
+  const side = player.x < centerX ? 'left' : 'right' // viewer-relative half
   const towardMiddleSign = side === 'left' ? 1 : -1
 
-  const forehandTowardMiddle =
-    (player.handedness === 'right' && side === 'left') || (player.handedness === 'left' && side === 'right')
-
-  const forehandXDir = forehandTowardMiddle ? towardMiddleSign : -towardMiddleSign
+  const forehandXDir = paddleXDir(player)
   const backhandXDir = -forehandXDir
+  const forehandTowardMiddle = forehandXDir === towardMiddleSign
 
   return {
     side,
+    facesViewer: facingSign(player) < 0,
     forehandTowardMiddle,
     forehandXDir,
     backhandXDir,
