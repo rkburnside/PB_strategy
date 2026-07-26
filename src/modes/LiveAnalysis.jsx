@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import CourtSvg from '../render/CourtSvg.jsx'
-import { useHeatmapImage, HeatmapLegend } from '../render/HeatCanvas.jsx'
+import { useHeatmapImage } from '../render/HeatCanvas.jsx'
 import { buildPrecomputedContext } from '../domain/derive.js'
 import { rankedCandidates, CANDIDATE_SHOT_TYPES } from '../domain/candidates.js'
 import { explainTarget } from '../domain/evaluate.js'
 import ScenarioPanel from './shared/ScenarioPanel.jsx'
+import CourtKey from './shared/CourtKey.jsx'
 import { Slider, Segmented } from './shared/controls.jsx'
 
 export default function LiveAnalysis({ scenario, onScenarioChange }) {
@@ -32,9 +33,11 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
           peakMarker={topPeak}
           heatmapCanvasUrl={heatmapUrl}
         />
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <HeatmapLegend />
+        <div className="mt-2">
           <Segmented options={CANDIDATE_SHOT_TYPES} value={selectedShotType} onChange={setSelectedShotType} />
+        </div>
+        <div className="mt-2">
+          <CourtKey />
         </div>
       </div>
 
