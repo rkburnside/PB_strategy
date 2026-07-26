@@ -21,8 +21,18 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
     [context, outputSpeed],
   )
 
-  const topPeak = candidates.find((c) => c.shotType === selectedShotType) ?? candidates[0]
-  const explanation = topPeak ? explainTarget(context, topPeak.x, topPeak.y, topPeak.shotType, topPeak.speed) : []
+  // Peak for the selected shot specifically. Computed on its own rather than
+  // looked up in `candidates`, because a poorly-scoring shot falls out of the
+  // top six — which used to silently fall back to the best shot, labelling
+  // another shot's ring and rationale with the selected shot's name.
+  const selectedPeak = useMemo(
+    () => rankedCandidates(context, outputSpeed, { topN: 1, shotTypes: [selectedShotType] })[0],
+    [context, outputSpeed, selectedShotType],
+  )
+
+  const explanation = selectedPeak
+    ? explainTarget(context, selectedPeak.x, selectedPeak.y, selectedPeak.shotType, selectedPeak.speed)
+    : []
 
   return (
     <div className="flex flex-col md:flex-row gap-4 p-3 md:p-4">
@@ -30,8 +40,8 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
         <CourtSvg
           scenario={scenario}
           onScenarioChange={onScenarioChange}
-          peakMarker={topPeak}
-          heatmapCanvasUrl={heatmapUrl}
+          peakMarker={selectedPeak}
+          heatmap={heatmapUrl}
         />
         <div className="mt-2">
           <Segmented options={CANDIDATE_SHOT_TYPES} value={selectedShotType} onChange={setSelectedShotType} />
@@ -72,10 +82,10 @@ export default function LiveAnalysis({ scenario, onScenarioChange }) {
           </ul>
         </div>
 
-        {topPeak && (
+        {selectedPeak && (
           <div className="rounded-lg border border-neutral-700 p-3">
             <h2 className="text-sm font-semibold text-neutral-200 mb-2">
-              Why: {selectedShotType} ({topPeak.score.toFixed(0)})
+              Why: {selectedShotType} ({selectedPeak.score.toFixed(0)})
             </h2>
             <ul className="flex flex-col gap-1 text-sm">
               {explanation.length === 0 && <li className="text-neutral-500">No rules fired at this peak.</li>}

@@ -159,7 +159,7 @@ export default function CourtSvg({
   scenario,
   onScenarioChange,
   peakMarker,
-  heatmapCanvasUrl,
+  heatmap,
   userTargetMarker,
   onPickTarget,
   locked = false,
@@ -206,13 +206,15 @@ export default function CourtSvg({
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       style={{ width: '100%', height: 'auto', touchAction: 'none', background: '#1c3d2e', borderRadius: 8 }}
     >
-      {heatmapCanvasUrl && (
+      {heatmap && (
+        // Placed over the sampled extent, not the court rect — sampling runs
+        // past the lines so out-of-bounds regions are visible.
         <image
-          href={heatmapCanvasUrl}
-          x={leftX}
-          y={baselineFarY}
-          width={rightX - leftX}
-          height={netY - baselineFarY}
+          href={heatmap.url}
+          x={ftToPx(heatmap.extent.minX, 0).px}
+          y={ftToPx(0, heatmap.extent.maxY).py}
+          width={ftToPx(heatmap.extent.maxX, 0).px - ftToPx(heatmap.extent.minX, 0).px}
+          height={ftToPx(0, heatmap.extent.minY).py - ftToPx(0, heatmap.extent.maxY).py}
           preserveAspectRatio="none"
           opacity={0.85}
         />

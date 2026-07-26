@@ -54,3 +54,25 @@ export function clamp(value, min, max) {
 export function sideOf(y) {
   return y <= 0 ? 'near' : 'far'
 }
+
+// How far the heat map samples past the lines, so out-of-bounds regions render
+// as visibly bad rather than simply absent. See docs/HEATMAP.md "Sampling".
+export const HEATMAP_MARGIN_FT = 3
+
+// A target beyond the sidelines or the baseline is out. Note this is about
+// where the ball LANDS, so it is deliberately separate from the ~6 ft margin
+// players are allowed to stand in for Erne and poach positions.
+export function isBeyondLines(x, y) {
+  return x < 0 || x > COURT.widthFt || Math.abs(y) > COURT.lengthHalfFt
+}
+
+// A target on or behind the net plane never reaches the other side.
+export function isShortOfNet(y) {
+  return y <= 0
+}
+
+// Distance from an in-bounds point to the nearest out line — the two
+// sidelines and the baseline. Drives the margin-for-error penalty.
+export function distanceToOutLine(x, y) {
+  return Math.min(x, COURT.widthFt - x, COURT.lengthHalfFt - Math.abs(y))
+}
