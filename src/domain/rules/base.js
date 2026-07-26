@@ -1,8 +1,18 @@
 // Declarative rule table. Rules are data, not nested conditionals, so they
 // stay auditable and tunable without touching engine logic. See CLAUDE.md
 // "Rules layer" and "Core rule principles".
-import { distance } from '../court.js'
+import { distance, isBeyondLines, isShortOfNet, distanceToOutLine, COURT } from '../court.js'
 import { isBackhandSide } from '../handedness.js'
+import { depthBandFor, isServe } from '../shotProfiles.js'
+
+// Depth and margin weights. Tunable; the per-shot depth windows themselves
+// live in shotProfiles.js.
+const DEPTH_BONUS = 12 // peak reward for landing on the ideal depth
+const DEPTH_PENALTY_PER_FT = 6 // per foot outside the shot's depth window
+const DEPTH_PENALTY_CAP = 40
+const LINE_MARGIN_FT = 1.5 // how close to a line before margin risk applies
+const LINE_RISK_BASE = 6
+const LINE_RISK_SPEED = 10 // extra risk at full pace, where margin shrinks
 
 export const OFFENSIVE_SHOTS = [
   'speed-up-body',
@@ -179,6 +189,87 @@ export const BASE_RULES = [
     scoreDelta: (ctx) => (ctx.divisionMods.paceTolerance - 1) * 15,
     appliesToDivisions: ['mens', 'womens', 'mixed'],
     explanation: 'Division pace tolerance shifts how much a fast shot is rewarded or punished.',
+    category: 'risk',
+  },
+
+  // --- Bounds and depth -----------------------------------------------
+  // Without these the surface is depth-blind: a dink scores the same landing
+  // a foot past the net as it does on the baseline.
+
+  {
+    id: 'target-out-of-bounds',
+    name: 'Target lands out',
+    condition: (ctx, target) => isBeyondLines(target.x, target.y),
+    scoreDelta: -45,
+    appliesToDivisions: ['mens', 'womens', 'mixed'],
+    explanation: 'Target is beyond the lines — this ball is out.',
+    category: 'risk',
+  },
+  {
+    id: 'target-short-of-net',
+    name: 'Target is short of the net',
+    condition: (ctx, target) => isShortOfNet(target.y),
+    scoreDelta: -45,
+    appliesToDivisions: ['mens', 'womens', 'mixed'],
+    explanation: 'Target never crosses the net plane.',
+    category: 'risk',
+  },
+  {
+    id: 'line-margin-risk',
+    name: 'Little margin to the line',
+    condition: (ctx, target) =>
+      !isBeyondLines(target.x, target.y) &&
+      !isShortOfNet(target.y) &&
+      distanceToOutLine(target.x, target.y) < LINE_MARGIN_FT,
+    scoreDelta: (ctx, target, shotType, speed) => {
+      const closeness = 1 - distanceToOutLine(target.x, target.y) / LINE_MARGIN_FT
+      return -closeness * (LINE_RISK_BASE + LINE_RISK_SPEED * speed)
+    },
+    appliesToDivisions: ['mens', 'womens', 'mixed'],
+    explanation: 'Painting this close to the line leaves no margin, and the margin shrinks as pace goes up.',
+    category: 'risk',
+  },
+  {
+    id: 'serve-must-clear-kitchen',
+    name: 'Serve into the non-volley zone is a fault',
+    condition: (ctx, target, shotType) => isServe(shotType) && target.y > 0 && target.y <= COURT.kitchenDepthFt,
+    scoreDelta: -50,
+    appliesToDivisions: ['mens', 'womens', 'mixed'],
+    explanation: 'A serve landing in the non-volley zone is a fault.',
+    category: 'risk',
+  },
+  {
+    id: 'depth-in-band',
+    name: 'Landing depth suits the shot',
+    condition: (ctx, target, shotType) => {
+      const band = depthBandFor(shotType)
+      return target.y >= band.min && target.y <= band.max
+    },
+    scoreDelta: (ctx, target, shotType) => {
+      const band = depthBandFor(shotType)
+      const spread = Math.max(band.ideal - band.min, band.max - band.ideal) || 1
+      const offBy = Math.abs(target.y - band.ideal) / spread
+      return DEPTH_BONUS * Math.max(0, 1 - offBy)
+    },
+    appliesToDivisions: ['mens', 'womens', 'mixed'],
+    explanation: 'Landing depth fits the shot — it arrives as the ball you intended.',
+    category: 'opportunity',
+  },
+  {
+    id: 'depth-out-of-band',
+    name: 'Landing depth wrong for the shot',
+    condition: (ctx, target, shotType) => {
+      const band = depthBandFor(shotType)
+      return target.y < band.min || target.y > band.max
+    },
+    scoreDelta: (ctx, target, shotType) => {
+      const band = depthBandFor(shotType)
+      const overshoot = target.y > band.max ? target.y - band.max : band.min - target.y
+      return -Math.min(DEPTH_PENALTY_CAP, overshoot * DEPTH_PENALTY_PER_FT)
+    },
+    appliesToDivisions: ['mens', 'womens', 'mixed'],
+    explanation:
+      'Landing depth is wrong for this shot: a dink that carries becomes an attackable floater, a drive that lands short is a free ball.',
     category: 'risk',
   },
 ]

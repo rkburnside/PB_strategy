@@ -1,22 +1,34 @@
 // Discrete ranked shot candidates are sampled peaks of the continuous
 // evaluateTarget surface — not a separate code path. See CLAUDE.md
 // "Engine Architecture" and docs/HEATMAP.md "Core Concept".
-import { COURT } from './court.js'
+import { COURT, HEATMAP_MARGIN_FT } from './court.js'
 import { evaluateTarget } from './evaluate.js'
 import { OFFENSIVE_SHOTS, CONTROL_SHOTS } from './rules/base.js'
 
 export const CANDIDATE_SHOT_TYPES = [...CONTROL_SHOTS, ...OFFENSIVE_SHOTS]
 
-// Samples the full target grid for a single shot type + speed and returns
-// the raw score matrix, used by the heat map canvas.
-export function sampleHeatmap(context, shotType, speed, gridStepFt = 1) {
+// Samples the target grid for a single shot type + speed and returns the raw
+// score matrix, used by the heat map canvas.
+//
+// Sampling runs a margin past the lines so out-of-bounds reads as visibly bad
+// rather than simply absent (docs/HEATMAP.md "Sampling"). The returned extent
+// tells the renderer what rectangle the grid covers, since it is larger than
+// the court itself.
+export function sampleHeatmap(context, shotType, speed, gridStepFt = 1, marginFt = HEATMAP_MARGIN_FT) {
   const xs = []
   const ys = []
-  for (let x = 0; x <= COURT.widthFt; x += gridStepFt) xs.push(x)
-  for (let y = 0; y <= COURT.lengthHalfFt; y += gridStepFt) ys.push(y)
+  // `|| 0` keeps a negative zero out of the axes when marginFt is 0.
+  const noNegZero = (v) => v || 0
+  for (let x = -marginFt; x <= COURT.widthFt + marginFt + 1e-9; x += gridStepFt) xs.push(noNegZero(x))
+  for (let y = -marginFt; y <= COURT.lengthHalfFt + marginFt + 1e-9; y += gridStepFt) ys.push(noNegZero(y))
 
   const grid = ys.map((y) => xs.map((x) => evaluateTarget(context, x, y, shotType, speed)))
-  return { xs, ys, grid }
+  return {
+    xs,
+    ys,
+    grid,
+    extent: { minX: xs[0], maxX: xs[xs.length - 1], minY: ys[0], maxY: ys[ys.length - 1] },
+  }
 }
 
 // Finds the best-scoring target for a single shot type at a given speed.

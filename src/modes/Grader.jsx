@@ -68,7 +68,7 @@ export default function Grader({ scenario, onScenarioChange }) {
           onScenarioChange={onScenarioChange}
           peakMarker={revealed ? optimal : null}
           userTargetMarker={userTarget}
-          heatmapCanvasUrl={revealed ? heatmapUrl : null}
+          heatmap={revealed ? heatmapUrl : null}
           onPickTarget={revealed ? undefined : (x, y) => setUserTarget({ x, y })}
         />
         <p className="mt-2 text-xs text-neutral-400">

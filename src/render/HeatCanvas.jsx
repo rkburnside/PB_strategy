@@ -15,18 +15,22 @@ function scoreToColor(score) {
   return [255, Math.round(255 - k * 115), Math.round(255 - k * 215)]
 }
 
+// Returns { url, extent } — the extent is the court rectangle the raster
+// covers, which is larger than the court itself because sampling runs past
+// the lines so out-of-bounds renders as visibly bad.
 export function useHeatmapImage(context, shotType, speed, gridStepFt = 1) {
   return useMemo(() => {
     if (!context) return null
-    const { xs, ys, grid } = sampleHeatmap(context, shotType, speed, gridStepFt)
+    const { xs, ys, grid, extent } = sampleHeatmap(context, shotType, speed, gridStepFt)
     const canvas = document.createElement('canvas')
     canvas.width = xs.length
     canvas.height = ys.length
     const ctx2d = canvas.getContext('2d')
     const imageData = ctx2d.createImageData(xs.length, ys.length)
 
-    // grid row 0 is y=0 (net); the image is placed net-to-far-baseline top-down,
-    // so the far baseline (largest y) must land in canvas row 0.
+    // grid row 0 is the smallest y (nearest the viewer); the image is placed
+    // top-down with the far baseline at the top, so the largest y must land in
+    // canvas row 0.
     for (let row = 0; row < ys.length; row++) {
       const dataRow = ys.length - 1 - row
       for (let col = 0; col < xs.length; col++) {
@@ -40,7 +44,7 @@ export function useHeatmapImage(context, shotType, speed, gridStepFt = 1) {
       }
     }
     ctx2d.putImageData(imageData, 0, 0)
-    return canvas.toDataURL()
+    return { url: canvas.toDataURL(), extent }
   }, [context, shotType, speed, gridStepFt])
 }
 
