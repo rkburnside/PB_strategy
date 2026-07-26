@@ -1,6 +1,6 @@
 // Rasterizes the evaluateTarget scoring surface to a canvas data URL, drawn
 // beneath the SVG court. See docs/HEATMAP.md "Rendering".
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { sampleHeatmap } from '../domain/candidates.js'
 
 // Colorblind-safe diverging scale: blue (risk/low) -> white (neutral) -> amber (opportunity/high).
@@ -16,10 +16,8 @@ function scoreToColor(score) {
 }
 
 export function useHeatmapImage(context, shotType, speed, gridStepFt = 1) {
-  const [url, setUrl] = useState(null)
-
-  useEffect(() => {
-    if (!context) return
+  return useMemo(() => {
+    if (!context) return null
     const { xs, ys, grid } = sampleHeatmap(context, shotType, speed, gridStepFt)
     const canvas = document.createElement('canvas')
     canvas.width = xs.length
@@ -42,10 +40,8 @@ export function useHeatmapImage(context, shotType, speed, gridStepFt = 1) {
       }
     }
     ctx2d.putImageData(imageData, 0, 0)
-    setUrl(canvas.toDataURL())
+    return canvas.toDataURL()
   }, [context, shotType, speed, gridStepFt])
-
-  return url
 }
 
 export function HeatmapLegend() {

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { COURT } from '../domain/court.js'
 
 const SCALE = 14 // px per foot
@@ -31,13 +31,16 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
   const svgRef = useRef(null)
   const dragging = useRef(false)
 
-  const handlePointerDown = useCallback((e) => {
-    if (locked) return
-    e.preventDefault()
-    e.stopPropagation()
-    dragging.current = true
-    e.target.setPointerCapture(e.pointerId)
-  }, [locked])
+  const handlePointerDown = useCallback(
+    (e) => {
+      if (locked) return
+      e.preventDefault()
+      e.stopPropagation()
+      dragging.current = true
+      e.target.setPointerCapture(e.pointerId)
+    },
+    [locked],
+  )
 
   const handlePointerMove = useCallback(
     (e) => {
@@ -51,7 +54,7 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
       const { x, y } = pxToFt(px2, py2)
       onDrag(index, x, y)
     },
-    [index, onDrag]
+    [index, onDrag],
   )
 
   const handlePointerUp = useCallback((e) => {
@@ -96,13 +99,16 @@ function BallMarker({ ball, onDrag, locked }) {
   const { px, py } = ftToPx(ball.x, ball.y)
   const dragging = useRef(false)
 
-  const handlePointerDown = useCallback((e) => {
-    if (locked) return
-    e.preventDefault()
-    e.stopPropagation()
-    dragging.current = true
-    e.target.setPointerCapture(e.pointerId)
-  }, [locked])
+  const handlePointerDown = useCallback(
+    (e) => {
+      if (locked) return
+      e.preventDefault()
+      e.stopPropagation()
+      dragging.current = true
+      e.target.setPointerCapture(e.pointerId)
+    },
+    [locked],
+  )
 
   const handlePointerMove = useCallback(
     (e) => {
@@ -116,7 +122,7 @@ function BallMarker({ ball, onDrag, locked }) {
       const { x, y } = pxToFt(px2, py2)
       onDrag(x, y)
     },
-    [onDrag]
+    [onDrag],
   )
 
   const handlePointerUp = useCallback((e) => {
@@ -125,14 +131,27 @@ function BallMarker({ ball, onDrag, locked }) {
   }, [])
 
   return (
-    <g style={{ touchAction: 'none', cursor: 'grab' }} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
+    <g
+      style={{ touchAction: 'none', cursor: 'grab' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+    >
       <circle cx={px} cy={py} r={20} fill="transparent" />
       <circle cx={px} cy={py} r={7} fill="#f5e642" stroke="#14161a" strokeWidth={1.5} />
     </g>
   )
 }
 
-export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatmapCanvasUrl, userTargetMarker, onPickTarget, locked = false }) {
+export default function CourtSvg({
+  scenario,
+  onScenarioChange,
+  peakMarker,
+  heatmapCanvasUrl,
+  userTargetMarker,
+  onPickTarget,
+  locked = false,
+}) {
   const netY = ftToPx(0, 0).py
   const kitchenNearY = ftToPx(0, -COURT.kitchenDepthFt).py
   const kitchenFarY = ftToPx(0, COURT.kitchenDepthFt).py
@@ -149,7 +168,7 @@ export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatm
 
   const handleToggleHandedness = (index) => {
     const players = scenario.players.map((p, i) =>
-      i === index ? { ...p, handedness: p.handedness === 'right' ? 'left' : 'right' } : p
+      i === index ? { ...p, handedness: p.handedness === 'right' ? 'left' : 'right' } : p,
     )
     onScenarioChange({ ...scenario, players })
   }
@@ -176,7 +195,15 @@ export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatm
       style={{ width: '100%', height: 'auto', touchAction: 'none', background: '#1c3d2e', borderRadius: 8 }}
     >
       {heatmapCanvasUrl && (
-        <image href={heatmapCanvasUrl} x={leftX} y={baselineFarY} width={rightX - leftX} height={netY - baselineFarY} preserveAspectRatio="none" opacity={0.85} />
+        <image
+          href={heatmapCanvasUrl}
+          x={leftX}
+          y={baselineFarY}
+          width={rightX - leftX}
+          height={netY - baselineFarY}
+          preserveAspectRatio="none"
+          opacity={0.85}
+        />
       )}
 
       {/* Court outline; also the tap-to-pick-target surface when onPickTarget is provided */}
@@ -202,8 +229,20 @@ export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatm
 
       {peakMarker && (
         <g>
-          <circle cx={ftToPx(peakMarker.x, peakMarker.y).px} cy={ftToPx(peakMarker.x, peakMarker.y).py} r={9} fill="none" stroke="#fff" strokeWidth={2} />
-          <circle cx={ftToPx(peakMarker.x, peakMarker.y).px} cy={ftToPx(peakMarker.x, peakMarker.y).py} r={2.5} fill="#fff" />
+          <circle
+            cx={ftToPx(peakMarker.x, peakMarker.y).px}
+            cy={ftToPx(peakMarker.x, peakMarker.y).py}
+            r={9}
+            fill="none"
+            stroke="#fff"
+            strokeWidth={2}
+          />
+          <circle
+            cx={ftToPx(peakMarker.x, peakMarker.y).px}
+            cy={ftToPx(peakMarker.x, peakMarker.y).py}
+            r={2.5}
+            fill="#fff"
+          />
         </g>
       )}
 
@@ -229,7 +268,14 @@ export default function CourtSvg({ scenario, onScenarioChange, peakMarker, heatm
       )}
 
       {scenario.players.map((p, i) => (
-        <PlayerMarker key={i} player={p} index={i} onDrag={handlePlayerDrag} onToggleHandedness={handleToggleHandedness} locked={locked} />
+        <PlayerMarker
+          key={i}
+          player={p}
+          index={i}
+          onDrag={handlePlayerDrag}
+          onToggleHandedness={handleToggleHandedness}
+          locked={locked}
+        />
       ))}
       <BallMarker ball={scenario.ball} onDrag={handleBallDrag} locked={locked} />
     </svg>

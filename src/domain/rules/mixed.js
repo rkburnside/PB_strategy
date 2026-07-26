@@ -1,7 +1,6 @@
 // Mixed-division rule adjustments. Mixed is not a modifier on the base case;
 // it has its own targeting dimension. See docs/DIVISIONS.md.
 import { distance } from '../court.js'
-import { OFFENSIVE_SHOTS } from './base.js'
 
 function femaleOpponent(ctx) {
   const [oppA, oppB] = ctx.players.slice(2)
@@ -22,8 +21,7 @@ export const MIXED_RULES = [
     },
     scoreDelta: 14,
     appliesToDivisions: ['mixed'],
-    explanation:
-      'Isolation targeting away from the more aggressive court position is the dominant 4.0+ mixed pattern.',
+    explanation: 'Isolation targeting away from the more aggressive court position is the dominant 4.0+ mixed pattern.',
     category: 'opportunity',
   },
   {

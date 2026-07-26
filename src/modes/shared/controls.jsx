@@ -54,8 +54,6 @@ export function RiskBadge({ badge }) {
     high: 'bg-rose-900 text-rose-300 border-rose-600',
   }
   return (
-    <span className={`rounded border px-2 py-0.5 text-xs font-semibold ${toneClasses[badge.tone]}`}>
-      {badge.label}
-    </span>
+    <span className={`rounded border px-2 py-0.5 text-xs font-semibold ${toneClasses[badge.tone]}`}>{badge.label}</span>
   )
 }

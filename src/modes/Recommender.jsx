@@ -55,7 +55,7 @@ export default function Recommender({ scenario, onScenarioChange }) {
   const context = useMemo(() => buildPrecomputedContext(scenario), [scenario])
   const candidates = useMemo(
     () => (analyzed ? rankedCandidatesAcrossSpeeds(context, { topN: 6 }) : []),
-    [analyzed, context]
+    [analyzed, context],
   )
 
   const peakMarker = candidates.find((c) => c.shotType === highlightedShot) ?? null

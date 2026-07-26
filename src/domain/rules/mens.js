@@ -1,5 +1,4 @@
 // Men's-division rule adjustments. See docs/DIVISIONS.md.
-import { OFFENSIVE_SHOTS } from './base.js'
 
 export const MENS_RULES = [
   {
@@ -9,7 +8,7 @@ export const MENS_RULES = [
       ctx.division === 'mens' && ['speed-up-body', 'speed-up-feet', 'speed-up-shoulder'].includes(shotType),
     scoreDelta: -8,
     appliesToDivisions: ['mens'],
-    explanation: "The pattern here counters speed-ups at a high rate — weight the follow-up risk accordingly.",
+    explanation: 'The pattern here counters speed-ups at a high rate — weight the follow-up risk accordingly.',
     category: 'risk',
   },
   {
