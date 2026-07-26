@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { COURT } from '../domain/court.js'
-import { paddleXDir } from '../domain/handedness.js'
+import { paddleXDir, facingSign } from '../domain/handedness.js'
 
 const SCALE = 14 // px per foot
 const MARGIN = COURT.outOfBoundsMarginFt
@@ -67,10 +67,15 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
   const label = player.role === 'user' ? 'U' : player.role === 'partner' ? 'P' : index === 2 ? 'O1' : 'O2'
 
   // Badge sits where the paddle actually is in space. Uses the same
-  // facing-aware helper the engine does, so the diagram and the scoring
+  // facing-aware helpers the engine does, so the diagram and the scoring
   // can't disagree about which side a player's forehand is on. Opponents
   // face the viewer, so their paddle renders mirrored.
+  //
+  // Vertically it sits between the player and the net — the direction each
+  // player faces. Screen py runs opposite to world y, hence the negation:
+  // the user's team gets the badge above the marker, opponents below.
   const badgeX = px + paddleXDir(player) * 16
+  const badgeY = py - facingSign(player) * 16
 
   return (
     <g
@@ -93,8 +98,8 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
         }}
         style={{ cursor: 'pointer' }}
       >
-        <circle cx={badgeX} cy={py - 16} r={9} fill="#14161a" stroke={color} strokeWidth={1.5} />
-        <text x={badgeX} y={py - 12} textAnchor="middle" fontSize="9" fill={color} fontWeight="700">
+        <circle cx={badgeX} cy={badgeY} r={9} fill="#14161a" stroke={color} strokeWidth={1.5} />
+        <text x={badgeX} y={badgeY + 4} textAnchor="middle" fontSize="9" fill={color} fontWeight="700">
           {player.handedness === 'right' ? 'R' : 'L'}
         </text>
       </g>
