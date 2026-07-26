@@ -65,6 +65,10 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
   const color = ROLE_COLOR[player.role] ?? '#ccc'
   const label = player.role === 'user' ? 'U' : player.role === 'partner' ? 'P' : index === 2 ? 'O1' : 'O2'
 
+  // Badge sits on the actual paddle-hand side, not a fixed corner: right-
+  // handed players carry it to their right (+x), left-handed to their left.
+  const badgeX = player.handedness === 'right' ? px + 16 : px - 16
+
   return (
     <g
       ref={svgRef}
@@ -86,8 +90,8 @@ function PlayerMarker({ player, index, onDrag, onToggleHandedness, locked }) {
         }}
         style={{ cursor: 'pointer' }}
       >
-        <circle cx={px + 16} cy={py - 16} r={9} fill="#14161a" stroke={color} strokeWidth={1.5} />
-        <text x={px + 16} y={py - 12} textAnchor="middle" fontSize="9" fill={color} fontWeight="700">
+        <circle cx={badgeX} cy={py - 16} r={9} fill="#14161a" stroke={color} strokeWidth={1.5} />
+        <text x={badgeX} y={py - 12} textAnchor="middle" fontSize="9" fill={color} fontWeight="700">
           {player.handedness === 'right' ? 'R' : 'L'}
         </text>
       </g>
